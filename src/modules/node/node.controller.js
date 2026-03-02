@@ -7,6 +7,8 @@ import {
   reorderSiblingsService,
   resolveByPathService,
   getBreadcrumbService,
+  getFullTreeService,
+  getNavigationTreeService,
 } from "./node.service.js";
 
 export const createNode = async (req, res, next) => {
@@ -85,6 +87,29 @@ export const breadcrumb = async (req, res, next) => {
   try {
     const chain = await getBreadcrumbService(req.params.id);
     res.json(chain);
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const getFullTree = async (req, res, next) => {
+  try {
+    const { onlyPublished } = req.query;
+
+    const tree = await getFullTreeService({
+      onlyPublished: onlyPublished === "true",
+    });
+
+    res.json(tree);
+  } catch (e) {
+    next(e);
+  }
+};
+
+export const getNavigationTree = async (req, res, next) => {
+  try {
+    const data = await getNavigationTreeService();
+    res.json(data);
   } catch (e) {
     next(e);
   }
