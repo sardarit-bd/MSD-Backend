@@ -1,5 +1,5 @@
-import Node from "./node.model.js";
 import mongoose from "mongoose";
+import Node from "./node.model.js";
 
 const toObjectIdOrNull = (value) => {
   if (!value) return null;
@@ -98,4 +98,59 @@ export const getBreadcrumbService = async (nodeId) => {
   }
 
   return chain;
+};
+
+export const getFullTreeService = async ({ onlyPublished = false }) => {
+  const filter = onlyPublished ? { status: "published" } : {};
+
+  const nodes = await Node.find(filter)
+    .sort({ order: 1, createdAt: 1 })
+    .lean();
+
+  const map = {};
+  const roots = [];
+
+  // Initialize map
+  nodes.forEach((node) => {
+    map[node._id] = { ...node, children: [] };
+  });
+
+  // Build tree
+  nodes.forEach((node) => {
+    if (node.parentId) {
+      map[node.parentId]?.children.push(map[node._id]);
+    } else {
+      roots.push(map[node._id]);
+    }
+  });
+
+  return roots;
+};
+
+export const getNavigationTreeService = async () => {
+  const rootNodes = await Node.find({
+    parentId: null,
+    status: "published"
+  }).sort({ order: 1 });
+
+  const buildTree = async (parent) => {
+    const children = await Node.find({
+      parentId: parent._id,
+      status: "published"
+    }).sort({ order: 1 });
+
+    return Promise.all(
+      children.map(async (child) => ({
+        ...child.toObject(),
+        children: await buildTree(child)
+      }))
+    );
+  };
+
+  return Promise.all(
+    rootNodes.map(async (root) => ({
+      ...root.toObject(),
+      children: await buildTree(root)
+    }))
+  );
 };

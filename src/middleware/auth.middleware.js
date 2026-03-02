@@ -1,6 +1,9 @@
 import jwt from "jsonwebtoken";
 import environment from "../config/environment.js";
 import User from "../modules/auth/auth.model.js";
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 export const protect = async (req, res, next) => {
   try {

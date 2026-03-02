@@ -6,6 +6,9 @@ import morgan from "morgan";
 import { errorHandler } from "../middleware/error.middleware.js";
 import authRoutes from "../modules/auth/auth.route.js";
 import nodeRoutes from "../modules/node/node.route.js";
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 const app = express();
 
