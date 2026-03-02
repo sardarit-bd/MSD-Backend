@@ -11,6 +11,8 @@ import {
   reorderSiblings,
   resolveByPath,
   breadcrumb,
+  getFullTree,
+  getNavigationTree,
 } from "./node.controller.js";
 
 import {
@@ -22,20 +24,57 @@ import {
 
 const router = express.Router();
 
-router.get("/", getChildren);
+/* ---------- PUBLIC ROUTES (Specific First) ---------- */
 
-// resolve slug path -> node (public rendering)
-router.post("/resolve", validate(resolvePathValidation), resolveByPath);
 
-// breadcrumb chain
+console.log("Node routes loaded");
+
+// Navigation tree
+router.get("/navigation", getNavigationTree);
+
+// Full tree
+router.get("/tree", getFullTree);
+
+// Resolve slug path (IMPORTANT: before :id)
+router.post(
+  "/resolve",
+  validate(resolvePathValidation),
+  resolveByPath
+);
+
+// Breadcrumb
 router.get("/:id/breadcrumb", breadcrumb);
 
-// get single node
+// Get children list
+router.get("/", getChildren);
+
+// Get single node by ID (ALWAYS LAST dynamic GET)
 router.get("/:id", getNodeById);
 
-router.post("/", protect, adminOnly, validate(createNodeValidation), createNode);
-router.patch("/:id", protect, adminOnly, validate(updateNodeValidation), updateNode);
-router.delete("/:id", protect, adminOnly, deleteNode);
+/* ---------- ADMIN ROUTES ---------- */
+
+router.post(
+  "/",
+  protect,
+  adminOnly,
+  validate(createNodeValidation),
+  createNode
+);
+
+router.patch(
+  "/:id",
+  protect,
+  adminOnly,
+  validate(updateNodeValidation),
+  updateNode
+);
+
+router.delete(
+  "/:id",
+  protect,
+  adminOnly,
+  deleteNode
+);
 
 router.post(
   "/reorder",
